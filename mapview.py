@@ -3,6 +3,23 @@ Friend data is injected as JSON; all date logic runs live in the browser so
 'Happy Birthday' flashing and the 'within N hours' highlight update by the
 minute without a Streamlit rerun."""
 import json
+import re
+
+# Match a Google Drive file id in the common link shapes people paste.
+_DRIVE_RE = re.compile(
+    r"drive\.google\.com/(?:file/d/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)")
+
+
+def normalize_photo(url):
+    """Turn a Google Drive share/view link into a directly-embeddable image URL.
+    Other URLs are returned unchanged. (The file must still be shared
+    'Anyone with the link'.)"""
+    if not url:
+        return url
+    m = _DRIVE_RE.search(url)
+    if m:
+        return f"https://drive.google.com/thumbnail?id={m.group(1)}&sz=w1000"
+    return url
 
 _TEMPLATE = r"""
 <!DOCTYPE html><html><head>
@@ -97,7 +114,7 @@ tick(); setInterval(tick,60000);
 def build_map_html(friends, window_hours=2, height=560):
     payload = [{
         "name": f["name"], "lat": f["lat"], "lng": f["lng"],
-        "photo": f["photo"], "phone": f["phone"], "email": f["email"],
+        "photo": normalize_photo(f["photo"]), "phone": f["phone"], "email": f["email"],
         "location": f["location"], "dob": f["dob"], "anniversary": f["anniversary"],
         "kids": f["kids"],
     } for f in friends]
