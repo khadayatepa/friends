@@ -1,0 +1,7 @@
+# NEVER commit secrets or wallet
+.streamlit/secrets.toml
+*.zip
+Wallet_*/
+__pycache__/
+*.pyc
+*.log
